@@ -107,6 +107,11 @@ jobs:
           fetch-depth: 0
 
       - name: 推送到 GitLab
+        env:
+          GITLAB_USER: ${{ secrets.GITLAB_USER }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          git remote add gitlab https://${{ secrets.GITLAB_USER }}:${{ secrets.GITLAB_TOKEN }}@gitlab.karthrand.cn:6443/private/ubuntu-ai.git
-          git push gitlab --mirror --force
+          git remote add gitlab https://gitlab.karthrand.cn:6443/private/ubuntu-ai.git
+          AUTH_HEADER=$(echo -n "${GITLAB_USER}:${GITLAB_TOKEN}" | base64)
+          git -c http.https://gitlab.karthrand.cn:6443/.extraHeader="Authorization: Basic ${AUTH_HEADER}" \
+            push gitlab --mirror --force
