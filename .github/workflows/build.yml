@@ -119,11 +119,5 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           git remote add gitlab https://gitlab.karthrand.cn:6443/private/ubuntu-ai.git
-          git credential approve <<EOF
-          protocol=https
-          host=gitlab.karthrand.cn
-          port=6443
-          username=${GITLAB_USER}
-          password=${GITLAB_TOKEN}
-          EOF
+          git config --global credential.helper '!f() { if test "$1" = get; then echo "protocol=https"; echo "host=gitlab.karthrand.cn"; echo "port=6443"; echo "username=$GITLAB_USER"; echo "password=$GITLAB_TOKEN"; fi; }; f'
           git push gitlab --mirror --force
