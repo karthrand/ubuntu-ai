@@ -120,4 +120,4 @@ jobs:
         run: |
           git remote add gitlab https://gitlab.karthrand.cn:6443/private/ubuntu-ai.git
           git config --global credential.helper '!f() { if test "$1" = get; then echo "protocol=https"; echo "host=gitlab.karthrand.cn"; echo "port=6443"; echo "username=$GITLAB_USER"; echo "password=$GITLAB_TOKEN"; fi; }; f'
-          git push gitlab --all --tags --force
+          git push gitlab --all --force
