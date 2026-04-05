@@ -112,8 +112,6 @@ jobs:
           nslookup gitlab.karthrand.cn || true
           echo "===== 端口连通性测试 ====="
           curl -v --connect-timeout 10 https://gitlab.karthrand.cn:6443/ 2>&1 || true
-          echo "===== Git 远程仓库测试 ====="
-          git ls-remote https://gitlab.karthrand.cn:6443/private/ubuntu-ai.git 2>&1 || true
 
       - name: 推送到 GitLab
         env:
@@ -121,6 +119,11 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           git remote add gitlab https://gitlab.karthrand.cn:6443/private/ubuntu-ai.git
-          AUTH_HEADER=$(echo -n "${GITLAB_USER}:${GITLAB_TOKEN}" | base64)
-          git -c http.https://gitlab.karthrand.cn:6443/.extraHeader="Authorization: Basic ${AUTH_HEADER}" \
-            push gitlab --mirror --force
+          git credential approve <<EOF
+          protocol=https
+          host=gitlab.karthrand.cn
+          port=6443
+          username=${GITLAB_USER}
+          password=${GITLAB_TOKEN}
+          EOF
+          git push gitlab --mirror --force
