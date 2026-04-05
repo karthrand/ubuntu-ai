@@ -106,6 +106,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 诊断 GitLab 连通性
+        run: |
+          echo "===== DNS 解析 ====="
+          nslookup gitlab.karthrand.cn || true
+          echo "===== 端口连通性测试 ====="
+          curl -v --connect-timeout 10 https://gitlab.karthrand.cn:6443/ 2>&1 || true
+          echo "===== Git 远程仓库测试 ====="
+          git ls-remote https://gitlab.karthrand.cn:6443/private/ubuntu-ai.git 2>&1 || true
+
       - name: 推送到 GitLab
         env:
           GITLAB_USER: ${{ secrets.GITLAB_USER }}
