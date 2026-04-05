@@ -1,0 +1,25 @@
+services:
+  ubuntu-ai:
+    image: karthrand/ubuntu-ai:latest
+    container_name: ubuntu-ai
+    ports:
+      - "2222:2222"
+    environment:
+      - ANTHROPIC_AUTH_TOKEN=${GLM_API_KEY}
+      - GLM_AUTH_TOKEN=${GLM_MCP_TOKEN}
+      - ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+      - ANTHROPIC_MODEL=opusplan
+      - DISABLE_TELEMETRY=1
+      - DISABLE_ERROR_REPORTING=1
+      - MCP_TIMEOUT=60000
+      - DISABLE_INSTALLATION_CHECKS=1
+      - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
+      - ENABLE_TOOL_SEARCH=false
+      - ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.7
+      - ANTHROPIC_DEFAULT_SONNET_MODEL=GLM-5-Turbo
+      - ANTHROPIC_DEFAULT_OPUS_MODEL=GLM-5.1
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+    restart: unless-stopped

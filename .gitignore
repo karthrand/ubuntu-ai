@@ -1,0 +1,13 @@
+*.tar
+*.tar.gz
+*.log
+.DS_Store
+
+# 敏感文件
+.env
+*.pem
+*.key
+
+# 用户配置
+docker-compose.yml
+.claude/
