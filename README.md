@@ -7,7 +7,8 @@
 在 ubuntu-base 基础上新增：
 
 - **AI CLI 工具**：OpenCode
-- **MCP 服务**：zai-mcp-server、web-search-prime、web-reader、zread
+- **预装 skill**：remote（远程服务器管理）、search-web（网络搜索），构建时经 `npx skills add -g -y -a opencode` 装入 `/root/.agents/skills`，容器启动时自动检查、缺失自愈补装
+- **MCP 服务**：zai-mcp-server、web-search-prime、web-reader、zread、context7、exa（条件启用）
 
 继承自 ubuntu-base：
 
@@ -46,19 +47,23 @@
 |------|------|
 | `OPENCODE_MODEL` | 显式覆盖默认模型（格式 `provider/model`，优先级最高） |
 | `GLM_MCP_TOKEN` | MCP 服务认证令牌 |
+| `CONTEXT7_API_KEY` | Context7 文档检索 API 密钥（可选，不设置也可使用，有限流） |
+| `EXA_API_KEY` | Exa 搜索 API 密钥（可选，不设置则不启用 exa MCP） |
 
 默认模型优先级：`OPENCODE_MODEL` > custom > deepseek > zai。
 
 ## MCP 服务
 
-| 名称 | 类型 | 端点 |
-|------|------|------|
-| zai-mcp-server | local (stdio) | `npx -y @z_ai/mcp-server` |
-| web-search-prime | remote | `https://open.bigmodel.cn/api/mcp/web_search_prime/mcp` |
-| web-reader | remote | `https://open.bigmodel.cn/api/mcp/web_reader/mcp` |
-| zread | remote | `https://open.bigmodel.cn/api/mcp/zread/mcp` |
+| 名称 | 类型 | 端点 | 启用条件 |
+|------|------|------|----------|
+| zai-mcp-server | local (stdio) | `npx -y @z_ai/mcp-server` | `GLM_MCP_TOKEN` |
+| web-search-prime | remote | `https://open.bigmodel.cn/api/mcp/web_search_prime/mcp` | `GLM_MCP_TOKEN` |
+| web-reader | remote | `https://open.bigmodel.cn/api/mcp/web_reader/mcp` | `GLM_MCP_TOKEN` |
+| zread | remote | `https://open.bigmodel.cn/api/mcp/zread/mcp` | `GLM_MCP_TOKEN` |
+| context7 | local (stdio) | `npx -y @upstash/context7-mcp@latest` | 始终启用（`CONTEXT7_API_KEY` 可选） |
+| exa | remote | `https://mcp.exa.ai/mcp` | `EXA_API_KEY` 有值时启用 |
 
-remote 服务通过 `Authorization: Bearer <GLM_MCP_TOKEN>` 认证，容器启动时自动注入。
+bigmodel 系服务通过 `Authorization: Bearer <GLM_MCP_TOKEN>` 认证，exa 通过 URL 参数携带密钥，均由容器启动时自动注入。
 
 ## 镜像源
 
@@ -122,8 +127,9 @@ SSH 登录后已配置的供应商密钥会通过 `/etc/profile.d/ai-env.sh` 自
 容器启动
   └─ start.sh
        ├─ configure-opencode.sh（幂等）
+       │    ├─ skill 检查：remote / search-web 存在则跳过，缺失自动补装
        │    ├─ custom/deepseek/zai 密钥 → /root/.local/share/opencode/auth.json + opencode.json
-       │    ├─ GLM_MCP_TOKEN → 替换 opencode.json 中占位符
+       │    ├─ MCP：GLM_MCP_TOKEN 替换占位符；context7 始终注入；exa 按 EXA_API_KEY 注入
        │    └─ 已配置变量 → /etc/profile.d/ai-env.sh
        └─ exec sshd -D
 ```
