@@ -5,19 +5,19 @@ services:
     ports:
       - "2222:2222"
     environment:
-      - ANTHROPIC_AUTH_TOKEN=${GLM_API_KEY}
-      - GLM_AUTH_TOKEN=${GLM_MCP_TOKEN}
-      - ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
-      - ANTHROPIC_MODEL=opusplan
-      - DISABLE_TELEMETRY=1
-      - DISABLE_ERROR_REPORTING=1
-      - MCP_TIMEOUT=60000
-      - DISABLE_INSTALLATION_CHECKS=1
-      - CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
-      - ENABLE_TOOL_SEARCH=false
-      - ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.7
-      - ANTHROPIC_DEFAULT_SONNET_MODEL=GLM-5-Turbo
-      - ANTHROPIC_DEFAULT_OPUS_MODEL=GLM-5.1
+      # ==== AI 供应商配置（三种模式可共存，默认模型优先级 custom > deepseek > zai）====
+      # 模式一：自定义 OpenAI 兼容供应商（三件套需同时配置，建议放 .env）
+      # - OPENCODE_CUSTOM_BASE_URL=https://api.example.com/v1
+      # - OPENCODE_CUSTOM_API_KEY=sk-xxx
+      # - OPENCODE_CUSTOM_MODEL=your-model-id
+      # 模式二：DeepSeek（opencode 官方内置，建议放 .env）
+      # - DEEPSEEK_API_KEY=sk-xxx
+      # 模式三：Z.AI GLM Coding Plan（opencode 官方内置，建议放 .env）
+      # - ZAI_API_KEY=xxx
+      # 默认模型显式覆盖（可选，格式 provider/model）
+      # - OPENCODE_MODEL=zai-coding-plan/glm-5.3
+      # ==== MCP 服务认证令牌 ====
+      - GLM_MCP_TOKEN=${GLM_MCP_TOKEN}
     env_file:
       - .env
     stdin_open: true

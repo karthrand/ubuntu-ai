@@ -10,4 +10,4 @@
 
 # 用户配置
 docker-compose.yml
-.claude/
+.opencode/
