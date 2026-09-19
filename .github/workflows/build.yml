@@ -44,17 +44,36 @@ jobs:
           docker run --rm ubuntu-ai:test npm --version
 
           echo "===== 验证 AI CLI 工具 ====="
-          docker run --rm ubuntu-ai:test claude --version
-          docker run --rm ubuntu-ai:test codex --version
           docker run --rm ubuntu-ai:test opencode --version
 
-          echo "===== 验证 MCP 配置 ====="
-          docker run --rm ubuntu-ai:test cat /root/.claude.json
+          echo "===== 验证 opencode 静态配置（权限 + MCP 清单）====="
+          docker run --rm ubuntu-ai:test jq '{permission, mcp: (.mcp | keys)}' /root/.config/opencode/opencode.json
+
+          echo "===== 验证配置脚本（ZAI 模式干跑）====="
+          docker run --rm -e ZAI_API_KEY=dummy-zai-key -e GLM_MCP_TOKEN=dummy-mcp-token ubuntu-ai:test bash -c '
+            ${ENV_SCRIPT_PATH}/configure-opencode.sh &&
+            jq . /root/.local/share/opencode/auth.json &&
+            jq "{model, mcp_env: .mcp[\"zai-mcp-server\"].environment}" /root/.config/opencode/opencode.json &&
+            cat /etc/profile.d/ai-env.sh'
+
+          echo "===== 验证配置脚本（custom + deepseek 组合干跑）====="
+          docker run --rm \
+            -e OPENCODE_CUSTOM_BASE_URL=https://api.example.com/v1 \
+            -e OPENCODE_CUSTOM_API_KEY=dummy-custom-key \
+            -e OPENCODE_CUSTOM_MODEL=test-model \
+            -e DEEPSEEK_API_KEY=dummy-deepseek-key \
+            ubuntu-ai:test bash -c '
+            ${ENV_SCRIPT_PATH}/configure-opencode.sh &&
+            jq "{model, providers: (.provider | keys)}" /root/.config/opencode/opencode.json &&
+            jq "keys" /root/.local/share/opencode/auth.json'
+
+          echo "===== 验证配置脚本（空配置不报错）====="
+          docker run --rm ubuntu-ai:test bash -c '${ENV_SCRIPT_PATH}/configure-opencode.sh'
 
           echo "===== 验证 SSH 配置 ====="
           docker run --rm ubuntu-ai:test grep '^Port' /etc/ssh/sshd_config
 
-          echo "===== 验证继承（Python/uv/git/jq） ====="
+          echo "===== 验证继承（Python/uv/git/jq）====="
           docker run --rm ubuntu-ai:test python3 --version
           docker run --rm ubuntu-ai:test uv --version
           docker run --rm ubuntu-ai:test git --version
